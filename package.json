@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.2.11",
+    "@fontsource/gowun-batang": "^5.2.8",
     "@fontsource/noto-sans-kr": "^5.2.9",
     "@phosphor-icons/react": "^2.1.10",
     "@vitejs/plugin-react": "5.0.4",
