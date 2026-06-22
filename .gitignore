@@ -1,0 +1,10 @@
+node_modules/
+.npm-cache/
+dist/
+.DS_Store
+*.log
+hero-implementation.png
+full-page-implementation.png
+qa-comparison*.png
+public/qa/
+public/qa-compare.html
