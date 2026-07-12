@@ -3,6 +3,8 @@ node_modules/
 dist/
 .DS_Store
 *.log
+.env
+.env.local
 hero-implementation.png
 full-page-implementation.png
 qa-comparison*.png
