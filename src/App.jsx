@@ -69,7 +69,7 @@ function Guestbook(){
   const[name,setName]=useState(""); const[message,setMessage]=useState("");
   const[submitting,setSubmitting]=useState(false); const[error,setError]=useState("");
   useEffect(()=>{
-    if(!db){setError("방명록 준비 중입니다");return}
+    if(!db)return;
     const q=query(collection(db,"guestbook"),orderBy("createdAt","desc"));
     const unsub=onSnapshot(q,snap=>setEntries(snap.docs.map(d=>({id:d.id,...d.data()}))),()=>setError("방명록을 불러오지 못했습니다"));
     return unsub;
@@ -110,7 +110,6 @@ function App(){
     <section className="contact-section section-pad"><SectionTitle eyebrow="CONTACT">축하의 마음 전하기</SectionTitle><div className="couple-contact">{couple.map(c=><ContactRow key={c.name} contact={c}/>)}</div><div className="family-contact-columns"><div><h3>신랑측 혼주</h3>{family.groom.map(c=><ContactRow key={c.name} contact={c}/>)}</div><div><h3>신부측 혼주</h3>{family.bride.map(c=><ContactRow key={c.name} contact={c}/>)}</div></div></section>
     <section className="account-section section-pad"><SectionTitle eyebrow="FOR YOUR HEART">마음 전하실 곳</SectionTitle><p className="section-note">축하의 마음을 전해주시는 모든 분께 감사드립니다.</p><div className="accounts"><AccountGroup title="신랑측 계좌번호" list={accounts.groom} onCopy={copyText}/><AccountGroup title="신부측 계좌번호" list={accounts.bride} onCopy={copyText}/></div></section>
     <section className="guestbook-section section-pad"><SectionTitle eyebrow="GUESTBOOK">방명록</SectionTitle><p className="section-note">축하의 마음을 자유롭게 남겨주세요.</p><Guestbook/></section>
-    <section className="closing-section"><img src={asset("photos/DSC_6207.jpg")} alt="함께 웃는 이재모와 서현아" loading="lazy"/><div className="closing-card"><p>저희의 소중한 날을<br/>함께해 주셔서 감사합니다.</p><span>보내주신 따뜻한 마음을 오래도록 간직하며<br/>서로 아끼고 사랑하며 잘 살아가겠습니다.</span><strong>이재모 · 서현아 드림</strong></div></section>
     <footer><p className="footer-eyebrow">THANK YOU</p><p className="footer-names">JAE MO <i>&</i> HYEON A</p><button onClick={share}><ShareNetwork size={18}/> 청첩장 공유하기</button><small>2026. 10. 31 · GWANGMYEONG</small></footer>
     <div className={`toast ${toast?"show":""}`} role="status"><Check size={16}/>{toast}</div>
   </main>
