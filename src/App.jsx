@@ -23,7 +23,7 @@ function Intro(){
     const io=new IntersectionObserver(([entry])=>{
       if(entry.isIntersecting){
         setVisible(true);
-        setTimeout(()=>video.play().catch(()=>{}),2000);
+        setTimeout(()=>video.play().catch(()=>{}),2800);
         io.disconnect();
       }
     },{threshold:.5});
@@ -45,15 +45,26 @@ function Calendar(){const days=useMemo(()=>[...Array(4).fill(null),...Array.from
 
 function Gallery(){
   const[openIndex,setOpenIndex]=useState(null);
+  const touchRef=useRef({x:0,swiped:false});
   useEffect(()=>{
     if(openIndex===null)return;
     const onKey=e=>{if(e.key==="Escape")setOpenIndex(null)};
     addEventListener("keydown",onKey);
     return()=>removeEventListener("keydown",onKey);
   },[openIndex]);
+  const onTouchStart=e=>{touchRef.current={x:e.touches[0].clientX,swiped:false}};
+  const onTouchMove=e=>{if(Math.abs(e.touches[0].clientX-touchRef.current.x)>10)touchRef.current.swiped=true};
+  const onTouchEnd=e=>{
+    const dx=e.changedTouches[0].clientX-touchRef.current.x;
+    if(Math.abs(dx)>50)setOpenIndex(i=>Math.min(gallery.length-1,Math.max(0,i+(dx<0?1:-1))));
+  };
+  const onLightboxClick=()=>{
+    if(touchRef.current.swiped){touchRef.current.swiped=false;return}
+    setOpenIndex(null);
+  };
   return <>
     <div className="gallery-grid">{gallery.map((image,i)=><figure key={image.name}><img src={image.src} alt={`웨딩 스냅 ${i+1}`} loading="lazy" draggable="false" onClick={()=>setOpenIndex(i)}/></figure>)}</div>
-    {openIndex!==null&&<div className="gallery-lightbox" role="dialog" aria-modal="true" onClick={()=>setOpenIndex(null)}>
+    {openIndex!==null&&<div className="gallery-lightbox" role="dialog" aria-modal="true" onClick={onLightboxClick} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
       <img src={gallery[openIndex].src} alt={`웨딩 스냅 ${openIndex+1}`} draggable="false"/>
     </div>}
   </>
