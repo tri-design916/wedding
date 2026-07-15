@@ -16,29 +16,17 @@ const accounts = {
 };
 
 function Intro(){
-  const ref=useRef(null); const videoRef=useRef(null); const coverRef=useRef(null);
-  const [hideCover,setHideCover]=useState(false); const [ended,setEnded]=useState(false); const [needsTap,setNeedsTap]=useState(false);
+  const videoRef=useRef(null); const [ended,setEnded]=useState(false); const [needsTap,setNeedsTap]=useState(false);
   useEffect(()=>{
-    const el=ref.current, video=videoRef.current, cover=coverRef.current;
-    if(!el||!video||!cover)return;
-    if(matchMedia("(prefers-reduced-motion: reduce)").matches){setHideCover(true);return}
-    const tryPlay=()=>video.play().catch(()=>setNeedsTap(true));
-    cover.addEventListener("transitionend",tryPlay,{once:true});
-    const io=new IntersectionObserver(([entry])=>{
-      if(entry.isIntersecting){
-        setTimeout(()=>setHideCover(true),120);
-        io.disconnect();
-      }
-    },{threshold:.5});
-    io.observe(el);
-    return()=>{io.disconnect();cover.removeEventListener("transitionend",tryPlay)};
+    const video=videoRef.current;
+    if(!video||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+    video.play().catch(()=>setNeedsTap(true));
   },[]);
   const replay=()=>{const video=videoRef.current;if(!video)return;video.currentTime=0;video.play().catch(()=>{});setEnded(false)};
   const tapToPlay=()=>{const video=videoRef.current;if(!video)return;video.play().then(()=>setNeedsTap(false)).catch(()=>{})};
-  return <section className="intro" ref={ref} aria-label="두 사람의 시간 이야기">
+  return <section className="intro" aria-label="두 사람의 시간 이야기">
     <p className="intro-kicker">OUR STORY, IN REVERSE</p>
     <video ref={videoRef} className="intro-video" src={asset("photos/intro.mp4")} muted playsInline preload="auto" onEnded={()=>setEnded(true)}/>
-    <div ref={coverRef} className={`intro-cover ${hideCover?"is-hidden":""}`} aria-hidden="true"/>
     {needsTap&&!ended&&<button className="intro-replay" onClick={tapToPlay} aria-label="영상 재생"><ArrowClockwise size={22}/></button>}
     {ended&&<button className="intro-replay" onClick={replay} aria-label="영상 다시 재생"><ArrowClockwise size={22}/></button>}
   </section>
