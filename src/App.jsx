@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDown, CalendarBlank, CaretDown, ChatCircle, Check, Copy, Phone, ShareNetwork } from "@phosphor-icons/react";
+import { ArrowClockwise, CalendarBlank, CaretDown, ChatCircle, Check, Copy, Phone, ShareNetwork } from "@phosphor-icons/react";
 import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
 
 const asset = path => `${import.meta.env.BASE_URL}assets/${path}`;
-const scenes = Array.from({ length: 6 }, (_, i) => asset(`scenes/scene-${i + 1}.png`));
 const gallery = Array.from({ length: 15 }, (_, i) => ({ name: `gallery-${String(i + 1).padStart(2, "0")}`, src: asset(`gallery/gallery-${String(i + 1).padStart(2, "0")}.jpg`) }));
 const couple = [{ label:"신랑", name:"이재모", phone:"010-9228-4689" },{ label:"신부", name:"서현아", phone:"010-6619-6100" }];
 const family = {
@@ -17,18 +16,20 @@ const accounts = {
 };
 
 function Intro(){
-  const ref=useRef(null); const [progress,setProgress]=useState(0);
-  useEffect(()=>{let frame=0; const update=()=>{const el=ref.current;if(!el)return;const r=el.getBoundingClientRect();setProgress(Math.min(1,Math.max(0,-r.top/(el.offsetHeight-innerHeight))))};const onScroll=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(update)};update();addEventListener("scroll",onScroll,{passive:true});addEventListener("resize",onScroll);return()=>{cancelAnimationFrame(frame);removeEventListener("scroll",onScroll);removeEventListener("resize",onScroll)}},[]);
-  const opacity=i=>{
-    const distance=Math.abs(progress-i/5);
-    const holdRadius=.07;
-    const fadeEdge=.11;
-    if(distance<=holdRadius)return 1;
-    if(distance>=fadeEdge)return 0;
-    return 1-(distance-holdRadius)/(fadeEdge-holdRadius);
-  };
-  const active=Math.min(6,Math.floor(progress*6)+1);
-  return <section className="intro" ref={ref} aria-label="두 사람의 시간 이야기"><div className="intro-sticky"><p className="intro-kicker">OUR STORY, IN REVERSE</p>{scenes.map((src,i)=><img key={src} className="scene-image" src={src} alt={`${i+1}번째 시간 장면`} style={{opacity:opacity(i)}} loading={i<2?"eager":"lazy"}/>)}<div className="intro-progress" aria-hidden="true"><span>{String(active).padStart(2,"0")}</span><div><i style={{transform:`scaleX(${progress})`}}/></div><span>06</span></div><div className={`scroll-cue ${progress>.08?"is-hidden":""}`}><ArrowDown size={17}/><span>천천히 스크롤해 주세요</span></div></div></section>
+  const ref=useRef(null); const videoRef=useRef(null); const [ended,setEnded]=useState(false);
+  useEffect(()=>{
+    const el=ref.current, video=videoRef.current;
+    if(!el||!video||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+    const io=new IntersectionObserver(([entry])=>{if(entry.isIntersecting){video.play().catch(()=>{});io.disconnect()}},{threshold:.5});
+    io.observe(el);
+    return()=>io.disconnect();
+  },[]);
+  const replay=()=>{const video=videoRef.current;if(!video)return;video.currentTime=0;video.play().catch(()=>{});setEnded(false)};
+  return <section className="intro" ref={ref} aria-label="두 사람의 시간 이야기">
+    <p className="intro-kicker">OUR STORY, IN REVERSE</p>
+    <video ref={videoRef} className="intro-video" src={asset("photos/intro.mp4")} muted playsInline preload="auto" onEnded={()=>setEnded(true)}/>
+    {ended&&<button className="intro-replay" onClick={replay} aria-label="영상 다시 재생"><ArrowClockwise size={22}/></button>}
+  </section>
 }
 
 function Hero(){return <section className="hero" aria-labelledby="hero-title"><img src={asset("photos/hero.jpg")} alt="푸른 들판에서 서로를 바라보는 이재모와 서현아"/><div className="hero-copy"><p className="hero-edition">THE FIRST EDITION · 2026</p><h1 id="hero-title">WEDDING<br/>INVITATION</h1><div className="hero-names"><span>Jae Mo</span><span>Hyeon A</span></div><div className="hero-date hero-date-left"><strong>Sat</strong><strong>Oct</strong><strong>31</strong></div><div className="hero-date hero-date-right"><strong>At</strong><strong>3:00</strong><strong>P.M.</strong></div></div></section>}
