@@ -26,7 +26,7 @@ function Intro(){
     cover.addEventListener("transitionend",tryPlay,{once:true});
     const io=new IntersectionObserver(([entry])=>{
       if(entry.isIntersecting){
-        requestAnimationFrame(()=>requestAnimationFrame(()=>setHideCover(true)));
+        setTimeout(()=>setHideCover(true),120);
         io.disconnect();
       }
     },{threshold:.5});
