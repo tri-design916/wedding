@@ -25,7 +25,10 @@ function Intro(){
     const tryPlay=()=>video.play().catch(()=>setNeedsTap(true));
     cover.addEventListener("transitionend",tryPlay,{once:true});
     const io=new IntersectionObserver(([entry])=>{
-      if(entry.isIntersecting){setHideCover(true);io.disconnect()}
+      if(entry.isIntersecting){
+        requestAnimationFrame(()=>requestAnimationFrame(()=>setHideCover(true)));
+        io.disconnect();
+      }
     },{threshold:.5});
     io.observe(el);
     return()=>{io.disconnect();cover.removeEventListener("transitionend",tryPlay)};
