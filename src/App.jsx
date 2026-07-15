@@ -16,32 +16,43 @@ const accounts = {
 };
 
 function Intro(){
-  const ref=useRef(null); const videoRef=useRef(null);
-  const [visible,setVisible]=useState(false); const [ended,setEnded]=useState(false); const [needsTap,setNeedsTap]=useState(false);
+  const ref=useRef(null); const videoRef=useRef(null); const coverRef=useRef(null);
+  const [hideCover,setHideCover]=useState(false); const [ended,setEnded]=useState(false); const [needsTap,setNeedsTap]=useState(false);
   useEffect(()=>{
-    const el=ref.current, video=videoRef.current;
-    if(!el||!video)return;
-    if(matchMedia("(prefers-reduced-motion: reduce)").matches){setVisible(true);return}
+    const el=ref.current, video=videoRef.current, cover=coverRef.current;
+    if(!el||!video||!cover)return;
+    if(matchMedia("(prefers-reduced-motion: reduce)").matches){setHideCover(true);return}
     const tryPlay=()=>video.play().catch(()=>setNeedsTap(true));
-    video.addEventListener("transitionend",tryPlay,{once:true});
+    cover.addEventListener("transitionend",tryPlay,{once:true});
     const io=new IntersectionObserver(([entry])=>{
-      if(entry.isIntersecting){setVisible(true);io.disconnect()}
+      if(entry.isIntersecting){setHideCover(true);io.disconnect()}
     },{threshold:.5});
     io.observe(el);
-    return()=>{io.disconnect();video.removeEventListener("transitionend",tryPlay)};
+    return()=>{io.disconnect();cover.removeEventListener("transitionend",tryPlay)};
   },[]);
   const replay=()=>{const video=videoRef.current;if(!video)return;video.currentTime=0;video.play().catch(()=>{});setEnded(false)};
   const tapToPlay=()=>{const video=videoRef.current;if(!video)return;video.play().then(()=>setNeedsTap(false)).catch(()=>{})};
   return <section className="intro" ref={ref} aria-label="두 사람의 시간 이야기">
     <p className="intro-kicker">OUR STORY, IN REVERSE</p>
-    <video ref={videoRef} className={`intro-video ${visible?"is-visible":""}`} src={asset("photos/intro.mp4")} muted playsInline preload="auto" onEnded={()=>setEnded(true)}/>
+    <video ref={videoRef} className="intro-video" src={asset("photos/intro.mp4")} muted playsInline preload="auto" onEnded={()=>setEnded(true)}/>
+    <div ref={coverRef} className={`intro-cover ${hideCover?"is-hidden":""}`} aria-hidden="true"/>
     {needsTap&&!ended&&<button className="intro-replay" onClick={tapToPlay} aria-label="영상 재생"><ArrowClockwise size={22}/></button>}
     {ended&&<button className="intro-replay" onClick={replay} aria-label="영상 다시 재생"><ArrowClockwise size={22}/></button>}
   </section>
 }
 
 function Hero(){return <section className="hero" aria-labelledby="hero-title"><img src={asset("photos/hero.jpg")} alt="푸른 들판에서 서로를 바라보는 이재모와 서현아"/><div className="hero-copy"><p className="hero-edition">THE FIRST EDITION · 2026</p><h1 id="hero-title">WEDDING<br/>INVITATION</h1><div className="hero-names"><span>Jae Mo</span><span>Hyeon A</span></div><div className="hero-date hero-date-left"><strong>Sat</strong><strong>Oct</strong><strong>31</strong></div><div className="hero-date hero-date-right"><strong>At</strong><strong>3:00</strong><strong>P.M.</strong></div></div></section>}
-function SectionTitle({eyebrow,children}){return <header className="section-heading"><p>{eyebrow}</p><h2>{children}</h2></header>}
+function SectionTitle({eyebrow,children}){
+  const ref=useRef(null); const [shown,setShown]=useState(false);
+  useEffect(()=>{
+    const el=ref.current;
+    if(!el||matchMedia("(prefers-reduced-motion: reduce)").matches){setShown(true);return}
+    const io=new IntersectionObserver(([entry])=>{if(entry.isIntersecting){setShown(true);io.disconnect()}},{threshold:.4});
+    io.observe(el);
+    return()=>io.disconnect();
+  },[]);
+  return <header ref={ref} className={`section-heading ${shown?"is-shown":""}`}><p>{eyebrow}</p><h2>{children}</h2></header>
+}
 
 function Calendar(){const days=useMemo(()=>[...Array(4).fill(null),...Array.from({length:31},(_,i)=>i+1)],[]);return <div className="calendar-card"><div className="calendar-top"><div><span>OCTOBER</span><strong>31</strong></div><p>2026<br/>SATURDAY</p></div><div className="calendar-weekdays">{["S","M","T","W","T","F","S"].map((d,i)=><span key={`${d}-${i}`}>{d}</span>)}</div><div className="calendar-days">{days.map((d,i)=><span key={i} className={d===31?"selected":""}>{d}</span>)}</div></div>}
 
