@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowClockwise, CalendarBlank, CaretDown, ChatCircle, Check, Copy, Phone, ShareNetwork } from "@phosphor-icons/react";
+import { ArrowClockwise, CalendarBlank, CaretDown, CaretLeft, CaretRight, ChatCircle, Check, Copy, Phone, ShareNetwork } from "@phosphor-icons/react";
 import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -20,15 +20,13 @@ function Intro(){
   useEffect(()=>{
     const el=ref.current, video=videoRef.current;
     if(!el||!video||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+    const onTransitionEnd=()=>video.play().catch(()=>{});
+    video.addEventListener("transitionend",onTransitionEnd,{once:true});
     const io=new IntersectionObserver(([entry])=>{
-      if(entry.isIntersecting){
-        setVisible(true);
-        setTimeout(()=>video.play().catch(()=>{}),2800);
-        io.disconnect();
-      }
+      if(entry.isIntersecting){setVisible(true);io.disconnect()}
     },{threshold:.5});
     io.observe(el);
-    return()=>io.disconnect();
+    return()=>{io.disconnect();video.removeEventListener("transitionend",onTransitionEnd)};
   },[]);
   const replay=()=>{const video=videoRef.current;if(!video)return;video.currentTime=0;video.play().catch(()=>{});setEnded(false)};
   return <section className="intro" ref={ref} aria-label="두 사람의 시간 이야기">
@@ -62,10 +60,14 @@ function Gallery(){
     if(touchRef.current.swiped){touchRef.current.swiped=false;return}
     setOpenIndex(null);
   };
+  const go=(delta,e)=>{e.stopPropagation();setOpenIndex(i=>Math.min(gallery.length-1,Math.max(0,i+delta)))};
   return <>
     <div className="gallery-grid">{gallery.map((image,i)=><figure key={image.name}><img src={image.src} alt={`웨딩 스냅 ${i+1}`} loading="lazy" draggable="false" onClick={()=>setOpenIndex(i)}/></figure>)}</div>
     {openIndex!==null&&<div className="gallery-lightbox" role="dialog" aria-modal="true" onClick={onLightboxClick} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
       <img src={gallery[openIndex].src} alt={`웨딩 스냅 ${openIndex+1}`} draggable="false"/>
+      {openIndex>0&&<button className="lightbox-nav lightbox-prev" onClick={e=>go(-1,e)} aria-label="이전 사진"><CaretLeft size={22}/></button>}
+      {openIndex<gallery.length-1&&<button className="lightbox-nav lightbox-next" onClick={e=>go(1,e)} aria-label="다음 사진"><CaretRight size={22}/></button>}
+      <span className="lightbox-count" aria-hidden="true">{openIndex+1} / {gallery.length}</span>
     </div>}
   </>
 }
