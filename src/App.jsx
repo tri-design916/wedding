@@ -26,7 +26,7 @@ function Intro(){
   const tapToPlay=()=>{const video=videoRef.current;if(!video)return;video.play().then(()=>setNeedsTap(false)).catch(()=>{})};
   return <section className="intro" aria-label="두 사람의 시간 이야기">
     <p className="intro-kicker">OUR STORY, IN REVERSE</p>
-    <video ref={videoRef} className="intro-video" src={asset("photos/intro.mp4")} muted playsInline preload="auto" onEnded={()=>setEnded(true)}/>
+    <video ref={videoRef} className="intro-video" src={asset("photos/intro.mp4")} autoPlay muted playsInline preload="auto" poster={asset("photos/intro-poster.jpg")} onEnded={()=>setEnded(true)}/>
     {needsTap&&!ended&&<button className="intro-replay" onClick={tapToPlay} aria-label="영상 재생"><ArrowClockwise size={22}/></button>}
     {ended&&<button className="intro-replay" onClick={replay} aria-label="영상 다시 재생"><ArrowClockwise size={22}/></button>}
   </section>
