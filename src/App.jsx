@@ -16,18 +16,24 @@ const accounts = {
 };
 
 function Intro(){
-  const ref=useRef(null); const videoRef=useRef(null); const [ended,setEnded]=useState(false);
+  const ref=useRef(null); const videoRef=useRef(null); const [visible,setVisible]=useState(false); const [ended,setEnded]=useState(false);
   useEffect(()=>{
     const el=ref.current, video=videoRef.current;
     if(!el||!video||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-    const io=new IntersectionObserver(([entry])=>{if(entry.isIntersecting){video.play().catch(()=>{});io.disconnect()}},{threshold:.5});
+    const io=new IntersectionObserver(([entry])=>{
+      if(entry.isIntersecting){
+        setVisible(true);
+        setTimeout(()=>video.play().catch(()=>{}),2000);
+        io.disconnect();
+      }
+    },{threshold:.5});
     io.observe(el);
     return()=>io.disconnect();
   },[]);
   const replay=()=>{const video=videoRef.current;if(!video)return;video.currentTime=0;video.play().catch(()=>{});setEnded(false)};
   return <section className="intro" ref={ref} aria-label="두 사람의 시간 이야기">
     <p className="intro-kicker">OUR STORY, IN REVERSE</p>
-    <video ref={videoRef} className="intro-video" src={asset("photos/intro.mp4")} muted playsInline preload="auto" onEnded={()=>setEnded(true)}/>
+    <video ref={videoRef} className={`intro-video ${visible?"is-visible":""}`} src={asset("photos/intro.mp4")} muted playsInline preload="auto" onEnded={()=>setEnded(true)}/>
     {ended&&<button className="intro-replay" onClick={replay} aria-label="영상 다시 재생"><ArrowClockwise size={22}/></button>}
   </section>
 }
