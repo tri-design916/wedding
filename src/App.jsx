@@ -16,22 +16,26 @@ const accounts = {
 };
 
 function Intro(){
-  const ref=useRef(null); const videoRef=useRef(null); const [visible,setVisible]=useState(false); const [ended,setEnded]=useState(false);
+  const ref=useRef(null); const videoRef=useRef(null);
+  const [visible,setVisible]=useState(false); const [ended,setEnded]=useState(false); const [needsTap,setNeedsTap]=useState(false);
   useEffect(()=>{
     const el=ref.current, video=videoRef.current;
-    if(!el||!video||matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-    const onTransitionEnd=()=>video.play().catch(()=>{});
-    video.addEventListener("transitionend",onTransitionEnd,{once:true});
+    if(!el||!video)return;
+    if(matchMedia("(prefers-reduced-motion: reduce)").matches){setVisible(true);return}
+    const tryPlay=()=>video.play().catch(()=>setNeedsTap(true));
+    video.addEventListener("transitionend",tryPlay,{once:true});
     const io=new IntersectionObserver(([entry])=>{
       if(entry.isIntersecting){setVisible(true);io.disconnect()}
     },{threshold:.5});
     io.observe(el);
-    return()=>{io.disconnect();video.removeEventListener("transitionend",onTransitionEnd)};
+    return()=>{io.disconnect();video.removeEventListener("transitionend",tryPlay)};
   },[]);
   const replay=()=>{const video=videoRef.current;if(!video)return;video.currentTime=0;video.play().catch(()=>{});setEnded(false)};
+  const tapToPlay=()=>{const video=videoRef.current;if(!video)return;video.play().then(()=>setNeedsTap(false)).catch(()=>{})};
   return <section className="intro" ref={ref} aria-label="두 사람의 시간 이야기">
     <p className="intro-kicker">OUR STORY, IN REVERSE</p>
     <video ref={videoRef} className={`intro-video ${visible?"is-visible":""}`} src={asset("photos/intro.mp4")} muted playsInline preload="auto" onEnded={()=>setEnded(true)}/>
+    {needsTap&&!ended&&<button className="intro-replay" onClick={tapToPlay} aria-label="영상 재생"><ArrowClockwise size={22}/></button>}
     {ended&&<button className="intro-replay" onClick={replay} aria-label="영상 다시 재생"><ArrowClockwise size={22}/></button>}
   </section>
 }
