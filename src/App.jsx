@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowClockwise, CalendarBlank, CaretDown, CaretLeft, CaretRight, ChatCircle, Check, Copy, Phone, ShareNetwork } from "@phosphor-icons/react";
+import { ArrowClockwise, CalendarBlank, CaretDown, CaretLeft, CaretRight, ChatCircle, Check, Copy, Phone, ShareNetwork, X } from "@phosphor-icons/react";
 import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -79,7 +79,59 @@ function Gallery(){
 }
 
 function LocationImage(){
-  return <img className="location-image" src={asset("photos/location.png")} alt="광명아이벡스컨벤션 위치 및 오시는 길 안내"/>;
+  const[open,setOpen]=useState(false);
+  const[scale,setScale]=useState(1);
+  const[pos,setPos]=useState({x:0,y:0});
+  const gestureRef=useRef({});
+  const lastTapRef=useRef(0);
+  useEffect(()=>{
+    if(!open)return;
+    const onKey=e=>{if(e.key==="Escape")setOpen(false)};
+    addEventListener("keydown",onKey);
+    return()=>removeEventListener("keydown",onKey);
+  },[open]);
+  const openLightbox=()=>{setScale(1);setPos({x:0,y:0});setOpen(true)};
+  const dist=(t1,t2)=>Math.hypot(t1.clientX-t2.clientX,t1.clientY-t2.clientY);
+  const onTouchStart=e=>{
+    const g=gestureRef.current;
+    if(e.touches.length===2){
+      g.pinching=true; g.moved=false;
+      g.startDist=dist(e.touches[0],e.touches[1]); g.startScale=scale;
+    } else if(e.touches.length===1){
+      g.pinching=false; g.moved=false;
+      g.startX=e.touches[0].clientX; g.startY=e.touches[0].clientY; g.startPos={...pos};
+    }
+  };
+  const onTouchMove=e=>{
+    const g=gestureRef.current;
+    if(e.touches.length===2&&g.pinching){
+      const d=dist(e.touches[0],e.touches[1]);
+      setScale(Math.min(4,Math.max(1,g.startScale*(d/g.startDist))));
+      g.moved=true;
+    } else if(e.touches.length===1&&scale>1){
+      const dx=e.touches[0].clientX-g.startX, dy=e.touches[0].clientY-g.startY;
+      if(Math.abs(dx)>5||Math.abs(dy)>5)g.moved=true;
+      setPos({x:g.startPos.x+dx,y:g.startPos.y+dy});
+    }
+  };
+  const onTouchEnd=e=>{
+    const g=gestureRef.current;
+    if(scale<1.02&&scale!==1){setScale(1);setPos({x:0,y:0})}
+    if(e.touches.length===0&&!g.moved){
+      const now=Date.now();
+      if(now-lastTapRef.current<300){
+        if(scale>1){setScale(1);setPos({x:0,y:0})}else{setScale(2.4)}
+      }
+      lastTapRef.current=now;
+    }
+  };
+  return <>
+    <img className="location-image" src={asset("photos/location.png")} alt="광명아이벡스컨벤션 위치 및 오시는 길 안내" onClick={openLightbox} role="button" tabIndex={0}/>
+    {open&&<div className="location-lightbox" role="dialog" aria-modal="true" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <button className="location-lightbox-close" onClick={()=>setOpen(false)} aria-label="닫기"><X size={20}/></button>
+      <img src={asset("photos/location.png")} alt="광명아이벡스컨벤션 위치 및 오시는 길 안내 확대" draggable="false" style={{transform:`translate(${pos.x}px, ${pos.y}px) scale(${scale})`}}/>
+    </div>}
+  </>
 }
 
 function ContactRow({contact}){return <div className="contact-row"><div><small>{contact.label}</small><strong>{contact.name}</strong></div><div className="contact-actions"><a href={`tel:${contact.phone}`} aria-label={`${contact.name}에게 전화`}><Phone size={19}/></a><a href={`sms:${contact.phone}`} aria-label={`${contact.name}에게 문자`}><ChatCircle size={19}/></a></div></div>}
