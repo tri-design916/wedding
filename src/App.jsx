@@ -11,7 +11,7 @@ const family = {
   bride:[{label:"아버지",name:"서정호",phone:"010-3580-9693"},{label:"어머니",name:"이세실리아",phone:"010-7648-8843"}],
 };
 const accounts = {
-  groom:[{role:"신랑",name:"이재모",bank:"신한은행",number:"110-437-874920"},{role:"아버지",name:"이한수",bank:"국민은행",number:"390402-04-137933"},{role:"어머니",name:"김용선",bank:"신한은행",number:"110-426-35944"}],
+  groom:[{role:"신랑",name:"이재모",bank:"신한은행",number:"110-437-874920"},{role:"아버지",name:"이한수",bank:"국민은행",number:"390402-04-137933"},{role:"어머니",name:"김용선",bank:"신한은행",number:"110-426-359442"}],
   bride:[{role:"신부",name:"서현아",bank:"토스",number:"1000-1431-6249"},{role:"아버지",name:"서정호",bank:"하나은행",number:"252-18-108710"},{role:"어머니",name:"이세실리아",bank:"기업은행",number:"194-068715-02-017"}],
 };
 
